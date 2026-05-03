@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Sorgu Paneli | Arastir.vip</title>
+    <!-- Tailwind CSS ve FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        
+        body { 
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #1e293b, #0f172a);
+            color: white;
+            min-height: screen;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .custom-input {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(51, 65, 85, 1);
+            transition: all 0.3s ease;
+        }
+
+        .custom-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            outline: none;
+        }
+
+        .result-box {
+            background: #020617;
+            border-left: 4px solid #3b82f6;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* Yükleme animasyonu */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="max-w-5xl w-full glass-card rounded-[2.5rem] p-6 md:p-12">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-5xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500 mb-3">
+                VIP SORGU PANELİ
+            </h1>
+            <p class="text-slate-400 font-medium tracking-wide">ARASTIR.VIP API SİSTEMİ İLE ENTEGRE</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <!-- Form Bölümü -->
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-bold text-slate-400 mb-2 ml-1 uppercase">İşlem Seçin</label>
+                    <select id="sorguTipi" class="w-full custom-input rounded-2xl p-4 text-slate-200 cursor-pointer">
+                        <option value="tc">🆔 TC Sorgu</option>
+                        <option value="adres">🏠 Adres Sorgu</option>
+                        <option value="adsoyad">👤 Ad Soyad Sorgu</option>
+                        <option value="gsmtc">📞 GSM'den TC Bul</option>
+                        <option value="tcgsm">📱 TC'den GSM Bul</option>
+                        <option value="isyeri">🏢 İş Yeri Bilgisi</option>
+                        <option value="sulale">👨‍👩‍👧‍👦 Sülale Ağacı</option>
+                    </select>
+                </div>
+
+                <div id="anaInputAlan">
+                    <label id="inputLabel" class="block text-sm font-bold text-slate-400 mb-2 ml-1 uppercase">Veri Girişi</label>
+                    <input type="text" id="mainVal" placeholder="Veriyi buraya yazın..." class="w-full custom-input rounded-2xl p-4 text-white">
+                </div>
+
+                <!-- Ad Soyad İçin Ekstra Alanlar -->
+                <div id="adsoyadAlanlari" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-400 mb-2 ml-1 uppercase">Soyadı</label>
+                        <input type="text" id="soyadi" placeholder="Soyadını girin..." class="w-full custom-input rounded-2xl p-4 text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-400 mb-2 ml-1 uppercase">İl (Opsiyonel)</label>
+                        <input type="text" id="il" placeholder="Şehir..." class="w-full custom-input rounded-2xl p-4 text-white">
+                    </div>
+                </div>
+
+                <button onclick="sorguYap()" id="sorguBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold py-5 rounded-2xl transition-all shadow-lg shadow-blue-900/20 active:scale-95">
+                    <i class="fa-solid fa-bolt mr-2"></i> SORGUYU ÇALIŞTIR
+                </button>
+            </div>
+
+            <!-- Sonuç Bölümü -->
+            <div class="flex flex-col h-full">
+                <label class="block text-sm font-bold text-slate-400 mb-2 ml-1 uppercase">Sistem Çıktısı</label>
+                <div id="sonucEkrani" class="result-box rounded-2xl p-6 flex-grow overflow-auto max-h-[400px] lg:max-h-full">
+                    <span class="text-slate-500 italic">// Sorgu bekleniyor...</span>
+                </div>
+                <div class="mt-4 flex justify-between items-center text-xs text-slate-500 uppercase font-bold tracking-widest">
+                    <span>Durum: <span id="durum" class="text-emerald-500">Hazır</span></span>
+                    <span>v2.0 Beta</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sorguTipi = document.getElementById('sorguTipi');
+        const adsoyadAlanlari = document.getElementById('adsoyadAlanlari');
+        const inputLabel = document.getElementById('inputLabel');
+        const mainInput = document.getElementById('mainVal');
+
+        // Tip değişince arayüzü güncelle
+        sorguTipi.addEventListener('change', () => {
+            const tip = sorguTipi.value;
+            
+            // Ad Soyad filtresi kontrolü
+            if(tip === 'adsoyad') {
+                adsoyadAlanlari.classList.remove('hidden');
+                inputLabel.innerText = "ADI";
+                mainInput.placeholder = "Kişinin adını girin...";
+            } else {
+                adsoyadAlanlari.classList.add('hidden');
+                inputLabel.innerText = "VERİ GİRİŞİ";
+                mainInput.placeholder = tip.includes('gsm') ? "5xxxxxxxxx" : "11 Haneli TC...";
+            }
+        });
+
+        async function sorguYap() {
+            const btn = document.getElementById('sorguBtn');
+            const sonucDiv = document.getElementById('sonucEkrani');
+            const durum = document.getElementById('durum');
+            
+            const tip = sorguTipi.value;
+            const mainVal = mainInput.value.trim();
+
+            if(!mainVal) {
+                alert("Lütfen bir veri girin!");
+                return;
+            }
+
+            // Başlat
+            btn.innerHTML = '<span class="loader"></span> SORGULANIYOR...';
+            btn.disabled = true;
+            durum.innerText = "SORGULANIYOR...";
+            durum.className = "text-amber-500";
+            sonucDiv.innerHTML = '<span class="text-blue-400 animate-pulse">// Veritabanına bağlanılıyor...</span>';
+
+            // API Linklerini hazırla
+            const base = "https://arastir.vip/api";
+            let url = "";
+
+            if(tip === 'adsoyad') {
+                const soyad = document.getElementById('soyadi').value.trim();
+                const il = document.getElementById('il').value.trim();
+                url = `${base}/adsoyad.php?adi=${mainVal}&soyadi=${soyad}&il=${il}`;
+            } else {
+                const endpoints = {
+                    tc: `tc.php?tc=${mainVal}`,
+                    adres: `adres.php?tc=${mainVal}`,
+                    gsmtc: `gsmtc.php?gsm=${mainVal}`,
+                    tcgsm: `tcgsm.php?tc=${mainVal}`,
+                    isyeri: `isyeri.php?tc=${mainVal}`,
+                    sulale: `sulale.php?tc=${mainVal}`
+                };
+                url = `${base}/${endpoints[tip]}`;
+            }
+
+            try {
+                // Not: Tarayıcıdan direkt başka siteye istek atarken CORS hatası alabilirsin.
+                // Bu durum API sahibinin iznine bağlıdır.
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                sonucDiv.innerHTML = `<pre class="text-blue-400">${JSON.stringify(data, null, 4)}</pre>`;
+                durum.innerText = "TAMAMLANDI";
+                durum.className = "text-emerald-500";
+            } catch (error) {
+                sonucDiv.innerHTML = `<span class="text-red-500">HATA: API bağlantısı kurulamadı veya CORS engeli var.</span><br><br><span class="text-slate-400 text-xs">Not: Eğer CORS hatası alıyorsanız, bu kodu bir proxy üzerinden veya yerel sunucuda çalıştırmanız gerekebilir.</span>`;
+                durum.innerText = "HATA";
+                durum.className = "text-red-500";
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-bolt mr-2"></i> SORGUYU ÇALIŞTIR';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
