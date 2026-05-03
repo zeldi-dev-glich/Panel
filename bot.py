@@ -8,7 +8,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
 
 # --- AYARLAR ---
-BOT_TOKEN = "BURAYA_BOT_TOKEN_YAZIN"
+BOT_TOKEN = "8536342139:AAHWl25OXIaK4-C2e4KCndELt426lvL00L8"
 API_BASE = "https://arastir.vip/api"
 
 bot = Bot(token=BOT_TOKEN)
